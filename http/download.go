@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"bufio"
 	"syscall"
 	"time"
 
@@ -24,17 +25,6 @@ import (
 var (
 	_ aptly.Downloader = (*downloaderImpl)(nil)
 )
-
-type myTransport struct {
-    transport http.Transport
-}
-
-func (t *myTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-    //  set custom User-Agent
-    req.Header.Set("User-Agent", "MyCustomAgent/1.0")
-    
-    return t.transport.RoundTrip(req)
-}
 
 
 // downloaderImpl is implementation of Downloader interface
@@ -173,6 +163,26 @@ func (downloader *downloaderImpl) newRequest(ctx context.Context, method, url st
 	}
 	req.Close = true
 	req = req.WithContext(ctx)
+	
+	file, err := os.Open("/etc/aptly/aptly.conf")
+        if err != nil {
+               fmt.Println("Error opening the file:", err)
+       } else  {
+
+       // Create a new scanner to read the file line by line
+       scanner := bufio.NewScanner(file)
+       for scanner.Scan() {
+               line := scanner.Text()
+               // Split the line based on space
+               parts := strings.Split(line, " ")
+               if len(parts) == 2 {
+                       key := strings.Trim(parts[0], "\"") // remove quotes around the key
+                       value := strings.Trim(parts[1], "\"") // remove quotes around the value
+                       req.Header.Add(key,value)
+               }
+          }
+       }
+       defer file.Close()
 
 	proxyURL, _ := downloader.client.Transport.(*http.Transport).Proxy(req)
 	if proxyURL == nil && (req.URL.Scheme == "http" || req.URL.Scheme == "https") {

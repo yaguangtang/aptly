@@ -38,7 +38,7 @@ type downloaderImpl struct {
 // NewDownloader creates new instance of Downloader which specified number
 // of threads and download limit in bytes/sec
 func NewDownloader(downLimit int64, maxTries int, progress aptly.Progress) aptly.Downloader {
-	transport := myTransport{}
+	transport := http.Transport{}
 	transport.Proxy = http.DefaultTransport.(*http.Transport).Proxy
 	transport.ResponseHeaderTimeout = 30 * time.Second
 	transport.TLSHandshakeTimeout = http.DefaultTransport.(*http.Transport).TLSHandshakeTimeout

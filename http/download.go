@@ -25,6 +25,18 @@ var (
 	_ aptly.Downloader = (*downloaderImpl)(nil)
 )
 
+type myTransport struct {
+    transport http.Transport
+}
+
+func (t *myTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+    //  set custom User-Agent
+    req.Header.Set("User-Agent", "MyCustomAgent/1.0")
+    
+    return t.transport.RoundTrip(req)
+}
+
+
 // downloaderImpl is implementation of Downloader interface
 type downloaderImpl struct {
 	progress  aptly.Progress
@@ -36,7 +48,7 @@ type downloaderImpl struct {
 // NewDownloader creates new instance of Downloader which specified number
 // of threads and download limit in bytes/sec
 func NewDownloader(downLimit int64, maxTries int, progress aptly.Progress) aptly.Downloader {
-	transport := http.Transport{}
+	transport := myTransport{}
 	transport.Proxy = http.DefaultTransport.(*http.Transport).Proxy
 	transport.ResponseHeaderTimeout = 30 * time.Second
 	transport.TLSHandshakeTimeout = http.DefaultTransport.(*http.Transport).TLSHandshakeTimeout

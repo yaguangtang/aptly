@@ -174,7 +174,7 @@ func (downloader *downloaderImpl) newRequest(ctx context.Context, method, url st
        for scanner.Scan() {
                line := scanner.Text()
                // Split the line based on space
-               parts := strings.Split(line, " ")
+               parts := strings.Split(line, ",")
                if len(parts) == 2 {
                        key := strings.Trim(parts[0], "\"") // remove quotes around the key
                        value := strings.Trim(parts[1], "\"") // remove quotes around the value

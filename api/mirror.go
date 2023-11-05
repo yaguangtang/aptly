@@ -483,8 +483,9 @@ func apiMirrorsUpdate(c *gin.Context) {
 						}
 
 						// download file...
-						e = context.Downloader().DownloadWithChecksum(
+						e = context.Downloader().DownloadWithChecksum_withheader(
 							context,
+							context.Config().HttpHeaders,
 							remote.PackageURL(task.File.DownloadURL()).String(),
 							task.TempDownPath,
 							&task.File.Checksums,

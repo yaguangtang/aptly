@@ -128,6 +128,47 @@ func (f *FakeDownloader) DownloadWithChecksum(_ context.Context, url string, fil
 	return nil
 }
 
+func (f *FakeDownloader) DownloadWithChecksum_withheader(_ context.Context, header string,url string, filename string, expected *utils.ChecksumInfo, ignoreMismatch bool) error {
+	expectation, err := f.getExpectedRequest(url)
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(filepath.Dir(filename), 0755)
+	if err != nil {
+		return err
+	}
+
+	outfile, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer outfile.Close()
+
+	cks := utils.NewChecksumWriter()
+	w := io.MultiWriter(outfile, cks)
+
+	_, err = w.Write([]byte(expectation.Response))
+	if err != nil {
+		return err
+	}
+
+	if expected != nil {
+		if expected.Size != cks.Sum().Size || expected.MD5 != "" && expected.MD5 != cks.Sum().MD5 ||
+			expected.SHA1 != "" && expected.SHA1 != cks.Sum().SHA1 || expected.SHA256 != "" && expected.SHA256 != cks.Sum().SHA256 {
+			if ignoreMismatch {
+				fmt.Printf("WARNING: checksums don't match: %#v != %#v for %s\n", expected, cks.Sum(), url)
+			} else {
+				return fmt.Errorf("checksums don't match: %#v != %#v for %s", expected, cks.Sum(), url)
+			}
+		}
+	}
+
+	return nil
+}
+
+// Download performs fake download by matching against first expectation in the queue
+
 // Download performs fake download by matching against first expectation in the queue
 func (f *FakeDownloader) Download(ctx context.Context, url string, filename string) error {
 	return f.DownloadWithChecksum(ctx, url, filename, nil, false)

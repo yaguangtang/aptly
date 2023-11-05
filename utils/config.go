@@ -9,6 +9,7 @@ import (
 // ConfigStructure is structure of main configuration
 type ConfigStructure struct { // nolint: maligned
 	RootDir                string                           `json:"rootDir"`
+	HttpHeaders            string                           `json:"HttpHeaders"`
 	DownloadConcurrency    int                              `json:"downloadConcurrency"`
 	DownloadLimit          int64                            `json:"downloadSpeedLimit"`
 	DownloadRetries        int                              `json:"downloadRetries"`
@@ -93,6 +94,7 @@ type AzurePublishRoot struct {
 // Config is configuration for aptly, shared by all modules
 var Config = ConfigStructure{
 	RootDir:                filepath.Join(os.Getenv("HOME"), ".aptly"),
+	HttpHeaders:            "user-agent=chrome",
 	DownloadConcurrency:    4,
 	DownloadLimit:          0,
 	Downloader:             "default",

@@ -73,6 +73,32 @@ func (d *GrabDownloader) DownloadWithChecksum(ctx context.Context, url string, d
 	return err
 }
 
+func (d *GrabDownloader) DownloadWithChecksum_withheader(ctx context.Context,header string ,url string, destination string, expected *utils.ChecksumInfo, ignoreMismatch bool) error {
+	maxTries := d.maxTries
+	const delayMax = time.Duration(5 * time.Minute)
+	delay := time.Duration(1 * time.Second)
+	const delayMultiplier = 2
+	err := fmt.Errorf("No tries available")
+	for maxTries > 0 {
+		err = d.download(ctx, url, destination, expected, ignoreMismatch)
+		if err == nil {
+			// Success
+			break
+		}
+		d.log("Error downloading %s: %v\n", url, err)
+		if retryableError(err) {
+			maxTries--
+			d.log("Retrying download %s: %d\n", url, maxTries)
+			time.Sleep(delay)
+		} else {
+			// Can't retry
+			d.log("Cannot retry download %s\n", url)
+			break
+		}
+	}
+	return err
+}
+
 func (d *GrabDownloader) log(msg string, a ...interface{}) {
 	fmt.Printf(msg, a...)
 	if d.progress != nil {

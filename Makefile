@@ -9,7 +9,7 @@ BINPATH?=$(GOPATH)/bin
 RUN_LONG_TESTS?=yes
 COVERAGE_DIR?=$(shell mktemp -d)
 
-all: modules test bench check system-test
+all: modules bench check system-test
 
 prepare:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.51.2

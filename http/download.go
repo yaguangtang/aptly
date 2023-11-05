@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"bufio"
 	"syscall"
 	"time"
 
@@ -164,25 +163,31 @@ func (downloader *downloaderImpl) newRequest(ctx context.Context, method, url st
 	req.Close = true
 	req = req.WithContext(ctx)
 	
-	file, err := os.Open("/etc/aptly/aptly.conf")
-        if err != nil {
-               fmt.Println("Error opening the file:", err)
-       } else  {
+	proxyURL, _ := downloader.client.Transport.(*http.Transport).Proxy(req)
+	if proxyURL == nil && (req.URL.Scheme == "http" || req.URL.Scheme == "https") {
+		req.URL.Opaque = strings.Replace(req.URL.RequestURI(), "+", "%2b", -1)
+		req.URL.RawQuery = ""
+	}
 
-       // Create a new scanner to read the file line by line
-       scanner := bufio.NewScanner(file)
-       for scanner.Scan() {
-               line := scanner.Text()
-               // Split the line based on space
-               parts := strings.Split(line, ",")
-               if len(parts) == 2 {
-                       key := strings.Trim(parts[0], "\"") // remove quotes around the key
-                       value := strings.Trim(parts[1], "\"") // remove quotes around the value
-                       req.Header.Add(key,value)
-               }
-          }
-       }
-       defer file.Close()
+	return req, nil
+}
+
+func (downloader *downloaderImpl) newRequest_withheader(ctx context.Context, header string,method, url string) (*http.Request, error) {
+	req, err := http.NewRequest(method, url, nil)
+
+	if err != nil {
+		return nil, errors.Wrap(err, url)
+	}
+	req.Close = true
+	req = req.WithContext(ctx)
+	
+        parts := strings.Split(header, ",")
+	for _,part := range parts {
+                keyValue := strings.Split(part, "=") // remove quotes around the key
+                key := keyValue[0]
+                value := keyValue[1]
+                req.Header.Add(key,value)
+        }
 
 	proxyURL, _ := downloader.client.Transport.(*http.Transport).Proxy(req)
 	if proxyURL == nil && (req.URL.Scheme == "http" || req.URL.Scheme == "https") {
@@ -202,6 +207,71 @@ func (downloader *downloaderImpl) DownloadWithChecksum(ctx context.Context, url 
 		defer downloader.progress.Flush()
 	}
 	req, err := downloader.newRequest(ctx, "GET", url)
+
+	var temppath string
+	maxTries := downloader.maxTries
+	const delayMax = time.Duration(5 * time.Minute)
+	delay := time.Duration(1 * time.Second)
+	const delayMultiplier = 2
+	for maxTries > 0 {
+		temppath, err = downloader.download(req, url, destination, expected, ignoreMismatch)
+
+		if err != nil {
+			if retryableError(err) {
+				if downloader.progress != nil {
+					downloader.progress.Printf("Error downloading %s: %s retrying...\n", url, err)
+				}
+				maxTries--
+				time.Sleep(delay)
+				// Sleep exponentially at the next retry, but no longer than delayMax
+				delay *= delayMultiplier
+				if delay > delayMax {
+					delay = delayMax
+				}
+			} else {
+				if downloader.progress != nil {
+					downloader.progress.Printf("Error downloading %s: %s cannot retry...\n", url, err)
+				}
+				break
+			}
+		} else {
+			// get out of the loop
+			if downloader.progress != nil {
+				downloader.progress.Printf("Success downloading %s\n", url)
+			}
+			break
+		}
+		if downloader.progress != nil {
+			downloader.progress.Printf("Retrying %d %s...\n", maxTries, url)
+		}
+	}
+
+	// still an error after retrying, giving up
+	if err != nil {
+		if downloader.progress != nil {
+			downloader.progress.Printf("Giving up on %s...\n", url)
+		}
+		return err
+	}
+
+	err = os.Rename(temppath, destination)
+	if err != nil {
+		os.Remove(temppath)
+		return errors.Wrap(err, url)
+	}
+
+	return nil
+}
+
+// DownloadWithChecksum starts new download task with checksum verification
+func (downloader *downloaderImpl) DownloadWithChecksum_withheader(ctx context.Context, headers string, url string, destination string,
+	expected *utils.ChecksumInfo, ignoreMismatch bool) error {
+
+	if downloader.progress != nil {
+		downloader.progress.Printf("Downloading %s...\n", url)
+		defer downloader.progress.Flush()
+	}
+	req, err := downloader.newRequest_withheader(ctx,headers, "GET", url)
 
 	var temppath string
 	maxTries := downloader.maxTries

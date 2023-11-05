@@ -168,8 +168,9 @@ func aptlyMirrorUpdate(cmd *commander.Command, args []string) error {
 					}
 
 					// download file...
-					e = context.Downloader().DownloadWithChecksum(
+					e = context.Downloader().DownloadWithChecksum_withheader(
 						context,
+						context.Config().HttpHeaders,
 						repo.PackageURL(task.File.DownloadURL()).String(),
 						task.TempDownPath,
 						&task.File.Checksums,

@@ -48,13 +48,13 @@ func aptlyMirrorUpdate(cmd *commander.Command, args []string) error {
 		return fmt.Errorf("unable to initialize GPG verifier: %s", err)
 	}
 
-	err = repo.Fetch(context.Downloader(), verifier)
+	err = repo.Fetch(context.Downloader(), context.Config().HttpHeaders, verifier)
 	if err != nil {
 		return fmt.Errorf("unable to update: %s", err)
 	}
 
 	context.Progress().Printf("Downloading & parsing package files...\n")
-	err = repo.DownloadPackageIndexes(context.Progress(), context.Downloader(), verifier, collectionFactory, ignoreMismatch)
+	err = repo.DownloadPackageIndexes(context.Progress(), context.Config().HttpHeaders, context.Downloader(), verifier, collectionFactory, ignoreMismatch)
 	if err != nil {
 		return fmt.Errorf("unable to update: %s", err)
 	}

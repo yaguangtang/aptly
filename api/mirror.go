@@ -115,7 +115,7 @@ func apiMirrorsCreate(c *gin.Context) {
 	}
 
 	downloader := context.NewDownloader(nil)
-	err = repo.Fetch(downloader, verifier)
+	err = repo.Fetch(downloader, context.Config().HttpHeaders,verifier)
 	if err != nil {
 		AbortWithJSONError(c, 400, fmt.Errorf("unable to fetch mirror: %s", err))
 		return
@@ -353,7 +353,7 @@ func apiMirrorsUpdate(c *gin.Context) {
 	maybeRunTaskInBackground(c, "Update mirror "+b.Name, resources, func(out aptly.Progress, detail *task.Detail) (*task.ProcessReturnValue, error) {
 
 		downloader := context.NewDownloader(out)
-		err := remote.Fetch(downloader, verifier)
+		err := remote.Fetch(downloader, context.Config().HttpHeaders, verifier)
 		if err != nil {
 			return &task.ProcessReturnValue{Code: http.StatusInternalServerError, Value: nil}, fmt.Errorf("unable to update: %s", err)
 		}
@@ -365,7 +365,7 @@ func apiMirrorsUpdate(c *gin.Context) {
 			}
 		}
 
-		err = remote.DownloadPackageIndexes(out, downloader, verifier, collectionFactory, b.SkipComponentCheck)
+		err = remote.DownloadPackageIndexes(out, context.Config().HttpHeaders, downloader, verifier, collectionFactory, b.SkipComponentCheck)
 		if err != nil {
 			return &task.ProcessReturnValue{Code: http.StatusInternalServerError, Value: nil}, fmt.Errorf("unable to update: %s", err)
 		}

@@ -12,14 +12,14 @@ import (
 // DownloadTemp starts new download to temporary file and returns File
 //
 // Temporary file would be already removed, so no need to cleanup
-func DownloadTemp(ctx context.Context, downloader aptly.Downloader, url string) (*os.File, error) {
-	return DownloadTempWithChecksum(ctx, downloader, url, nil, false)
+func DownloadTemp(ctx context.Context, headers string,downloader aptly.Downloader, url string) (*os.File, error) {
+	return DownloadTempWithChecksum(ctx, headers, downloader, url, nil, false)
 }
 
 // DownloadTempWithChecksum is a DownloadTemp with checksum verification
 //
 // Temporary file would be already removed, so no need to cleanup
-func DownloadTempWithChecksum(ctx context.Context, downloader aptly.Downloader, url string, expected *utils.ChecksumInfo, ignoreMismatch bool) (*os.File, error) {
+func DownloadTempWithChecksum(ctx context.Context, headers string, downloader aptly.Downloader, url string, expected *utils.ChecksumInfo, ignoreMismatch bool) (*os.File, error) {
 	tempdir, err := os.MkdirTemp(os.TempDir(), "aptly")
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func DownloadTempWithChecksum(ctx context.Context, downloader aptly.Downloader, 
 		defer downloader.GetProgress().ShutdownBar()
 	}
 
-	err = downloader.DownloadWithChecksum(ctx, url, tempfile, expected, ignoreMismatch)
+	err = downloader.DownloadWithChecksum_withheader(ctx, headers, url, tempfile, expected, ignoreMismatch)
 	if err != nil {
 		return nil, err
 	}

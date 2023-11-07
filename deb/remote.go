@@ -270,7 +270,7 @@ func (repo *RemoteRepo) PackageURL(filename string) *url.URL {
 }
 
 // Fetch updates information about repository
-func (repo *RemoteRepo) Fetch(d aptly.Downloader, verifier pgp.Verifier) error {
+func (repo *RemoteRepo) Fetch(d aptly.Downloader, headers string, verifier pgp.Verifier) error {
 	var (
 		release, inrelease, releasesig *os.File
 		err                            error
@@ -278,13 +278,13 @@ func (repo *RemoteRepo) Fetch(d aptly.Downloader, verifier pgp.Verifier) error {
 
 	if verifier == nil {
 		// 0. Just download release file to temporary URL
-		release, err = http.DownloadTemp(gocontext.TODO(), d, repo.ReleaseURL("Release").String())
+		release, err = http.DownloadTemp(gocontext.TODO(), headers, d, repo.ReleaseURL("Release").String())
 		if err != nil {
 			return err
 		}
 	} else {
 		// 1. try InRelease file
-		inrelease, err = http.DownloadTemp(gocontext.TODO(), d, repo.ReleaseURL("InRelease").String())
+		inrelease, err = http.DownloadTemp(gocontext.TODO(), headers, d, repo.ReleaseURL("InRelease").String())
 		if err != nil {
 			goto splitsignature
 		}
@@ -306,12 +306,12 @@ func (repo *RemoteRepo) Fetch(d aptly.Downloader, verifier pgp.Verifier) error {
 
 	splitsignature:
 		// 2. try Release + Release.gpg
-		release, err = http.DownloadTemp(gocontext.TODO(), d, repo.ReleaseURL("Release").String())
+		release, err = http.DownloadTemp(gocontext.TODO(), headers, d, repo.ReleaseURL("Release").String())
 		if err != nil {
 			return err
 		}
 
-		releasesig, err = http.DownloadTemp(gocontext.TODO(), d, repo.ReleaseURL("Release.gpg").String())
+		releasesig, err = http.DownloadTemp(gocontext.TODO(), headers, d, repo.ReleaseURL("Release.gpg").String())
 		if err != nil {
 			return err
 		}
@@ -428,7 +428,7 @@ ok:
 }
 
 // DownloadPackageIndexes downloads & parses package index files
-func (repo *RemoteRepo) DownloadPackageIndexes(progress aptly.Progress, d aptly.Downloader, verifier pgp.Verifier, _ *CollectionFactory,
+func (repo *RemoteRepo) DownloadPackageIndexes(progress aptly.Progress, headers string,d aptly.Downloader, verifier pgp.Verifier, _ *CollectionFactory,
 	ignoreMismatch bool) error {
 	if repo.packageList != nil {
 		panic("packageList != nil")
@@ -462,7 +462,7 @@ func (repo *RemoteRepo) DownloadPackageIndexes(progress aptly.Progress, d aptly.
 
 	for _, info := range packagesPaths {
 		path, kind, component, architecture := info[0], info[1], info[2], info[3]
-		packagesReader, packagesFile, err := http.DownloadTryCompression(gocontext.TODO(), d, repo.IndexesRootURL(), path, repo.ReleaseFiles, ignoreMismatch)
+		packagesReader, packagesFile, err := http.DownloadTryCompression(gocontext.TODO(), headers, d, repo.IndexesRootURL(), path, repo.ReleaseFiles, ignoreMismatch)
 
 		isInstaller := kind == PackageTypeInstaller
 		if err != nil {
@@ -475,7 +475,7 @@ func (repo *RemoteRepo) DownloadPackageIndexes(progress aptly.Progress, d aptly.
 
 				// some repos do not have installer hashsum file listed in release file but provide a separate gpg file
 				hashsumPath := repo.IndexesRootURL().ResolveReference(&url.URL{Path: path}).String()
-				packagesFile, err = http.DownloadTemp(gocontext.TODO(), d, hashsumPath)
+				packagesFile, err = http.DownloadTemp(gocontext.TODO(), headers,d, hashsumPath)
 				if err != nil {
 					if herr, ok := err.(*http.Error); ok && (herr.Code == 404 || herr.Code == 403) {
 						// installer files are not available in all components and architectures
@@ -489,7 +489,7 @@ func (repo *RemoteRepo) DownloadPackageIndexes(progress aptly.Progress, d aptly.
 				if verifier != nil {
 					hashsumGpgPath := repo.IndexesRootURL().ResolveReference(&url.URL{Path: path + ".gpg"}).String()
 					var filesig *os.File
-					filesig, err = http.DownloadTemp(gocontext.TODO(), d, hashsumGpgPath)
+					filesig, err = http.DownloadTemp(gocontext.TODO(), headers, d, hashsumGpgPath)
 					if err != nil {
 						return err
 					}

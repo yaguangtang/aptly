@@ -69,7 +69,7 @@ func aptlyMirrorEdit(cmd *commander.Command, args []string) error {
 			return fmt.Errorf("unable to initialize GPG verifier: %s", err)
 		}
 
-		err = repo.Fetch(context.Downloader(), verifier)
+		err = repo.Fetch(context.Downloader(), context.Config().HttpHeaders, verifier)
 		if err != nil {
 			return fmt.Errorf("unable to edit: %s", err)
 		}

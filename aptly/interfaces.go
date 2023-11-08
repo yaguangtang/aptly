@@ -159,7 +159,7 @@ type Downloader interface {
 	Download(ctx context.Context, url string, destination string) error
 	// DownloadWithChecksum starts new download task with checksum verification
 	DownloadWithChecksum(ctx context.Context, url string, destination string, expected *utils.ChecksumInfo, ignoreMismatch bool) error
-	DownloadWithChecksum_withheader(ctx context.Context,header string, url string, destination string, expected *utils.ChecksumInfo, ignoreMismatch bool) error
+	DownloadWithChecksum_withheader(ctx context.Context, header string, url string, destination string, expected *utils.ChecksumInfo, ignoreMismatch bool) error
 	// GetProgress returns Progress object
 	GetProgress() Progress
 	// GetLength returns size by heading object with url

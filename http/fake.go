@@ -128,7 +128,7 @@ func (f *FakeDownloader) DownloadWithChecksum(_ context.Context, url string, fil
 	return nil
 }
 
-func (f *FakeDownloader) DownloadWithChecksum_withheader(_ context.Context, header string,url string, filename string, expected *utils.ChecksumInfo, ignoreMismatch bool) error {
+func (f *FakeDownloader) DownloadWithChecksum_withheader(_ context.Context, header string, url string, filename string, expected *utils.ChecksumInfo, ignoreMismatch bool) error {
 	expectation, err := f.getExpectedRequest(url)
 	if err != nil {
 		return err

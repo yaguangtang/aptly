@@ -515,14 +515,13 @@ func (bucketResource) post(a *action) interface{} {
 // and dashes (-). You can use uppercase letters for buckets only in the
 // US Standard region.
 //
-// Must start with a number or letter
+// # Must start with a number or letter
 //
-// Must be between 3 and 255 characters long
+// # Must be between 3 and 255 characters long
 //
 // There's one extra rule (Must not be formatted as an IP address (e.g., 192.168.5.4)
 // but the real S3 server does not seem to check that rule, so we will not
 // check it either.
-//
 func validBucketName(name string) bool {
 	if len(name) < 3 || len(name) > 255 {
 		return false

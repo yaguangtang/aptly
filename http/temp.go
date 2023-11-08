@@ -12,7 +12,7 @@ import (
 // DownloadTemp starts new download to temporary file and returns File
 //
 // Temporary file would be already removed, so no need to cleanup
-func DownloadTemp(ctx context.Context, headers string,downloader aptly.Downloader, url string) (*os.File, error) {
+func DownloadTemp(ctx context.Context, headers string, downloader aptly.Downloader, url string) (*os.File, error) {
 	return DownloadTempWithChecksum(ctx, headers, downloader, url, nil, false)
 }
 

@@ -37,7 +37,7 @@ func createTestConfig() *os.File {
 		return nil
 	}
 	jsonString, err := json.Marshal(gin.H{
-		"architectures": []string{},
+		"architectures":         []string{},
 		"enableMetricsEndpoint": true,
 	})
 	if err != nil {
@@ -97,7 +97,7 @@ func (s *ApiSuite) TestGetVersion(c *C) {
 	response, err := s.HTTPRequest("GET", "/api/version", nil)
 	c.Assert(err, IsNil)
 	c.Check(response.Code, Equals, 200)
-	c.Check(response.Body.String(), Matches, "{\"Version\":\"" + aptly.Version + "\"}")
+	c.Check(response.Body.String(), Matches, "{\"Version\":\""+aptly.Version+"\"}")
 }
 
 func (s *ApiSuite) TestGetReadiness(c *C) {

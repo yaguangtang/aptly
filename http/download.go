@@ -25,7 +25,6 @@ var (
 	_ aptly.Downloader = (*downloaderImpl)(nil)
 )
 
-
 // downloaderImpl is implementation of Downloader interface
 type downloaderImpl struct {
 	progress  aptly.Progress
@@ -162,7 +161,7 @@ func (downloader *downloaderImpl) newRequest(ctx context.Context, method, url st
 	}
 	req.Close = true
 	req = req.WithContext(ctx)
-	
+
 	proxyURL, _ := downloader.client.Transport.(*http.Transport).Proxy(req)
 	if proxyURL == nil && (req.URL.Scheme == "http" || req.URL.Scheme == "https") {
 		req.URL.Opaque = strings.Replace(req.URL.RequestURI(), "+", "%2b", -1)
@@ -172,7 +171,7 @@ func (downloader *downloaderImpl) newRequest(ctx context.Context, method, url st
 	return req, nil
 }
 
-func (downloader *downloaderImpl) newRequest_withheader(ctx context.Context, header string,method, url string) (*http.Request, error) {
+func (downloader *downloaderImpl) newRequest_withheader(ctx context.Context, header string, method, url string) (*http.Request, error) {
 	req, err := http.NewRequest(method, url, nil)
 
 	if err != nil {
@@ -180,14 +179,14 @@ func (downloader *downloaderImpl) newRequest_withheader(ctx context.Context, hea
 	}
 	req.Close = true
 	req = req.WithContext(ctx)
-	
-        parts := strings.Split(header, ",")
-	for _,part := range parts {
-                keyValue := strings.Split(part, "=") // remove quotes around the key
-                key := keyValue[0]
-                value := keyValue[1]
-                req.Header.Add(key,value)
-        }
+
+	parts := strings.Split(header, ",")
+	for _, part := range parts {
+		keyValue := strings.Split(part, "=") // remove quotes around the key
+		key := keyValue[0]
+		value := keyValue[1]
+		req.Header.Add(key, value)
+	}
 
 	proxyURL, _ := downloader.client.Transport.(*http.Transport).Proxy(req)
 	if proxyURL == nil && (req.URL.Scheme == "http" || req.URL.Scheme == "https") {
@@ -271,7 +270,7 @@ func (downloader *downloaderImpl) DownloadWithChecksum_withheader(ctx context.Co
 		downloader.progress.Printf("Downloading %s...\n", url)
 		defer downloader.progress.Flush()
 	}
-	req, err := downloader.newRequest_withheader(ctx,headers, "GET", url)
+	req, err := downloader.newRequest_withheader(ctx, headers, "GET", url)
 
 	var temppath string
 	maxTries := downloader.maxTries

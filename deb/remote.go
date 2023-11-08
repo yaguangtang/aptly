@@ -428,7 +428,7 @@ ok:
 }
 
 // DownloadPackageIndexes downloads & parses package index files
-func (repo *RemoteRepo) DownloadPackageIndexes(progress aptly.Progress, headers string,d aptly.Downloader, verifier pgp.Verifier, _ *CollectionFactory,
+func (repo *RemoteRepo) DownloadPackageIndexes(progress aptly.Progress, headers string, d aptly.Downloader, verifier pgp.Verifier, _ *CollectionFactory,
 	ignoreMismatch bool) error {
 	if repo.packageList != nil {
 		panic("packageList != nil")
@@ -475,7 +475,7 @@ func (repo *RemoteRepo) DownloadPackageIndexes(progress aptly.Progress, headers 
 
 				// some repos do not have installer hashsum file listed in release file but provide a separate gpg file
 				hashsumPath := repo.IndexesRootURL().ResolveReference(&url.URL{Path: path}).String()
-				packagesFile, err = http.DownloadTemp(gocontext.TODO(), headers,d, hashsumPath)
+				packagesFile, err = http.DownloadTemp(gocontext.TODO(), headers, d, hashsumPath)
 				if err != nil {
 					if herr, ok := err.(*http.Error); ok && (herr.Code == 404 || herr.Code == 403) {
 						// installer files are not available in all components and architectures

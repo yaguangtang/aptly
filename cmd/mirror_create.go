@@ -59,7 +59,7 @@ func aptlyMirrorCreate(cmd *commander.Command, args []string) error {
 		return fmt.Errorf("unable to initialize GPG verifier: %s", err)
 	}
 
-	err = repo.Fetch(context.Downloader(),context.Config().HttpHeaders, verifier)
+	err = repo.Fetch(context.Downloader(), context.Config().HttpHeaders, verifier)
 	if err != nil {
 		return fmt.Errorf("unable to fetch mirror: %s", err)
 	}

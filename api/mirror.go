@@ -115,7 +115,7 @@ func apiMirrorsCreate(c *gin.Context) {
 	}
 
 	downloader := context.NewDownloader(nil)
-	err = repo.Fetch(downloader, context.Config().HttpHeaders,verifier)
+	err = repo.Fetch(downloader, context.Config().HttpHeaders, verifier)
 	if err != nil {
 		AbortWithJSONError(c, 400, fmt.Errorf("unable to fetch mirror: %s", err))
 		return
